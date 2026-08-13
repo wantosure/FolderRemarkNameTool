@@ -1,6 +1,7 @@
 using Microsoft.Win32;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
@@ -21,6 +22,7 @@ internal static class Program
 
         ApplicationConfiguration.Initialize();
         CrashLog.WriteMessage("启动程序");
+        Localizer.Apply(SettingsStore.Load().LanguageCode);
 
         if (args.Length >= 2 && args[0].Equals("--set-remark", StringComparison.OrdinalIgnoreCase))
         {
@@ -50,6 +52,284 @@ internal static class Program
     }
 }
 
+internal static class Localizer
+{
+    private static readonly Dictionary<string, Dictionary<string, string>> Texts = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["en"] = new()
+        {
+            ["AppName"] = "Folder Remark Name",
+            ["SettingsMenu"] = "Settings...",
+            ["HelpMenu"] = "Help",
+            ["ExitMenu"] = "Exit",
+            ["HelpText"] = "Select a folder in Windows File Explorer, then press {0} to set its remark name.\r\n\r\nYou can also right-click a folder and choose \"Set remark name\".",
+            ["HotkeyRegisterFailed"] = "Shortcut {0} registration failed. It may already be used by another app.\r\n\r\nPlease choose another shortcut in settings, such as Ctrl + Alt + F4.",
+            ["SettingsSaved"] = "Settings saved.",
+            ["SelectFolderFirst"] = "Please select a folder in File Explorer first.",
+            ["InvalidFolder"] = "Please select a valid folder.",
+            ["RemarkSaved"] = "Remark name saved.",
+            ["WriteRemarkFailedTitle"] = "Failed to write remark",
+            ["UnauthorizedHint"] = "Possible causes: desktop.ini or the target folder has read-only/system attributes, the file is in use, or this folder requires higher permissions.",
+            ["RemarkDialogTitle"] = "Set Folder Remark Name",
+            ["PreviewDisplayName"] = "Display name preview",
+            ["OriginalName"] = "Original name",
+            ["RemarkName"] = "Remark name",
+            ["ShowOriginalName"] = "Show original name in parentheses after remark name",
+            ["Save"] = "Save",
+            ["Cancel"] = "Cancel",
+            ["OriginalNameRequired"] = "Original name cannot be empty.",
+            ["SettingsTitle"] = "Folder Remark Name Settings",
+            ["SettingsSubtitle"] = "Shortcut, context menu, startup, and language",
+            ["Hotkey"] = "Shortcut:",
+            ["Language"] = "Language:",
+            ["Options"] = "Options",
+            ["ContextMenuOption"] = "Add folder context menu in File Explorer",
+            ["StartupOption"] = "Start with Windows",
+            ["Hint"] = "Tip: Context menu changes are written to the current user registry immediately.",
+            ["InvalidHotkey"] = "Please set a valid shortcut first.",
+            ["About"] = "About this app",
+            ["OpenGitHub"] = "Open GitHub",
+            ["ContextSetRemark"] = "Set remark name",
+            ["LanguageAuto"] = "Auto (System)",
+            ["LanguageZhHans"] = "Chinese (Simplified)",
+            ["LanguageEn"] = "English",
+            ["LanguageJa"] = "Japanese",
+            ["LanguageKo"] = "Korean",
+            ["RenameParentFailed"] = "Cannot get parent folder.",
+            ["InvalidFileName"] = "Original name contains characters that Windows does not allow.",
+            ["NameExists"] = "A folder or file with this name already exists in the same directory.",
+        },
+        ["zh-Hans"] = new()
+        {
+            ["AppName"] = "文件夹备注名",
+            ["SettingsMenu"] = "设置...",
+            ["HelpMenu"] = "使用说明",
+            ["ExitMenu"] = "退出",
+            ["HelpText"] = "在 Windows 资源管理器中选中一个文件夹，按 {0} 设置备注名。\r\n\r\n也可以右键文件夹，选择“设置备注名”。",
+            ["HotkeyRegisterFailed"] = "快捷键 {0} 注册失败，可能已被其他程序占用。\r\n\r\n请在设置里换一个组合键，例如 Ctrl + Alt + F4。",
+            ["SettingsSaved"] = "设置已保存。",
+            ["SelectFolderFirst"] = "请先在资源管理器中选中一个文件夹。",
+            ["InvalidFolder"] = "请选择一个有效文件夹。",
+            ["RemarkSaved"] = "备注名已保存。",
+            ["WriteRemarkFailedTitle"] = "写入备注失败",
+            ["UnauthorizedHint"] = "可能原因：desktop.ini 或目标文件夹带只读/系统属性、文件被占用，或该目录需要更高权限。",
+            ["RemarkDialogTitle"] = "设置文件夹备注名",
+            ["PreviewDisplayName"] = "预览显示名",
+            ["OriginalName"] = "原名",
+            ["RemarkName"] = "备注名",
+            ["ShowOriginalName"] = "备注名后面用括号显示原名",
+            ["Save"] = "保存",
+            ["Cancel"] = "取消",
+            ["OriginalNameRequired"] = "原名不能为空。",
+            ["SettingsTitle"] = "文件夹备注名设置",
+            ["SettingsSubtitle"] = "快捷键、右键菜单、启动项和语言",
+            ["Hotkey"] = "快捷键：",
+            ["Language"] = "语言：",
+            ["Options"] = "选项",
+            ["ContextMenuOption"] = "加入资源管理器文件夹右键菜单",
+            ["StartupOption"] = "开机自动启动",
+            ["Hint"] = "提示：右键菜单会立即写入当前用户注册表。",
+            ["InvalidHotkey"] = "请先设置一个有效快捷键。",
+            ["About"] = "关于本软件",
+            ["OpenGitHub"] = "打开 GitHub",
+            ["ContextSetRemark"] = "设置备注名",
+            ["LanguageAuto"] = "跟随系统",
+            ["LanguageZhHans"] = "简体中文",
+            ["LanguageEn"] = "English",
+            ["LanguageJa"] = "日本語",
+            ["LanguageKo"] = "한국어",
+            ["RenameParentFailed"] = "无法获取父目录。",
+            ["InvalidFileName"] = "原名包含 Windows 不允许的字符。",
+            ["NameExists"] = "同一目录下已经存在这个名称。",
+        },
+        ["zh-Hant"] = new()
+        {
+            ["AppName"] = "資料夾備註名",
+            ["SettingsMenu"] = "設定...",
+            ["HelpMenu"] = "使用說明",
+            ["ExitMenu"] = "結束",
+            ["HelpText"] = "在 Windows 檔案總管中選取一個資料夾，按 {0} 設定備註名。\r\n\r\n也可以右鍵資料夾，選擇「設定備註名」。",
+            ["HotkeyRegisterFailed"] = "快捷鍵 {0} 註冊失敗，可能已被其他程式占用。\r\n\r\n請在設定裡換一個組合鍵，例如 Ctrl + Alt + F4。",
+            ["SettingsSaved"] = "設定已儲存。",
+            ["SelectFolderFirst"] = "請先在檔案總管中選取一個資料夾。",
+            ["InvalidFolder"] = "請選擇一個有效資料夾。",
+            ["RemarkSaved"] = "備註名已儲存。",
+            ["WriteRemarkFailedTitle"] = "寫入備註失敗",
+            ["UnauthorizedHint"] = "可能原因：desktop.ini 或目標資料夾帶唯讀/系統屬性、檔案被占用，或該目錄需要更高權限。",
+            ["RemarkDialogTitle"] = "設定資料夾備註名",
+            ["PreviewDisplayName"] = "預覽顯示名",
+            ["OriginalName"] = "原名",
+            ["RemarkName"] = "備註名",
+            ["ShowOriginalName"] = "備註名後面用括號顯示原名",
+            ["Save"] = "儲存",
+            ["Cancel"] = "取消",
+            ["OriginalNameRequired"] = "原名不能為空。",
+            ["SettingsTitle"] = "資料夾備註名設定",
+            ["SettingsSubtitle"] = "快捷鍵、右鍵選單、啟動項和語言",
+            ["Hotkey"] = "快捷鍵：",
+            ["Language"] = "語言：",
+            ["Options"] = "選項",
+            ["ContextMenuOption"] = "加入檔案總管資料夾右鍵選單",
+            ["StartupOption"] = "開機自動啟動",
+            ["Hint"] = "提示：右鍵選單會立即寫入目前使用者登錄檔。",
+            ["InvalidHotkey"] = "請先設定一個有效快捷鍵。",
+            ["About"] = "關於本軟體",
+            ["OpenGitHub"] = "開啟 GitHub",
+            ["ContextSetRemark"] = "設定備註名",
+            ["LanguageAuto"] = "跟隨系統",
+            ["LanguageZhHans"] = "简体中文",
+            ["LanguageZhHant"] = "繁體中文",
+            ["LanguageEn"] = "English",
+            ["LanguageJa"] = "日本語",
+            ["LanguageKo"] = "한국어",
+            ["RenameParentFailed"] = "無法取得父目錄。",
+            ["InvalidFileName"] = "原名包含 Windows 不允許的字元。",
+            ["NameExists"] = "同一目錄下已經存在這個名稱。",
+        },
+        ["ja"] = new()
+        {
+            ["AppName"] = "フォルダー備考名",
+            ["SettingsMenu"] = "設定...",
+            ["HelpMenu"] = "使い方",
+            ["ExitMenu"] = "終了",
+            ["HelpText"] = "Windows エクスプローラーでフォルダーを選択し、{0} を押して備考名を設定します。\r\n\r\nフォルダーを右クリックして「備考名を設定」を選ぶこともできます。",
+            ["HotkeyRegisterFailed"] = "ショートカット {0} の登録に失敗しました。他のアプリで使用されている可能性があります。\r\n\r\n設定で Ctrl + Alt + F4 など別のショートカットに変更してください。",
+            ["SettingsSaved"] = "設定を保存しました。",
+            ["SelectFolderFirst"] = "先にエクスプローラーでフォルダーを選択してください。",
+            ["InvalidFolder"] = "有効なフォルダーを選択してください。",
+            ["RemarkSaved"] = "備考名を保存しました。",
+            ["WriteRemarkFailedTitle"] = "備考名の書き込みに失敗しました",
+            ["UnauthorizedHint"] = "考えられる原因: desktop.ini または対象フォルダーが読み取り専用/システム属性、ファイルが使用中、または高い権限が必要です。",
+            ["RemarkDialogTitle"] = "フォルダー備考名を設定",
+            ["PreviewDisplayName"] = "表示名プレビュー",
+            ["OriginalName"] = "元の名前",
+            ["RemarkName"] = "備考名",
+            ["ShowOriginalName"] = "備考名の後ろに元の名前を括弧で表示",
+            ["Save"] = "保存",
+            ["Cancel"] = "キャンセル",
+            ["OriginalNameRequired"] = "元の名前は空にできません。",
+            ["SettingsTitle"] = "フォルダー備考名設定",
+            ["SettingsSubtitle"] = "ショートカット、右クリックメニュー、起動、言語",
+            ["Hotkey"] = "ショートカット:",
+            ["Language"] = "言語:",
+            ["Options"] = "オプション",
+            ["ContextMenuOption"] = "エクスプローラーのフォルダー右クリックメニューに追加",
+            ["StartupOption"] = "Windows 起動時に開始",
+            ["Hint"] = "ヒント: 右クリックメニューの変更は現在のユーザーのレジストリにすぐ書き込まれます。",
+            ["InvalidHotkey"] = "有効なショートカットを設定してください。",
+            ["About"] = "このアプリについて",
+            ["OpenGitHub"] = "GitHub を開く",
+            ["ContextSetRemark"] = "備考名を設定",
+            ["LanguageAuto"] = "自動 (システム)",
+            ["LanguageZhHans"] = "簡体字中国語",
+            ["LanguageEn"] = "English",
+            ["LanguageJa"] = "日本語",
+            ["LanguageKo"] = "한국어",
+            ["RenameParentFailed"] = "親フォルダーを取得できません。",
+            ["InvalidFileName"] = "元の名前に Windows で使用できない文字が含まれています。",
+            ["NameExists"] = "同じ場所に同名のフォルダーまたはファイルが既に存在します。",
+        },
+        ["ko"] = new()
+        {
+            ["AppName"] = "폴더 표시 이름",
+            ["SettingsMenu"] = "설정...",
+            ["HelpMenu"] = "사용법",
+            ["ExitMenu"] = "종료",
+            ["HelpText"] = "Windows 파일 탐색기에서 폴더를 선택한 뒤 {0} 키로 표시 이름을 설정합니다.\r\n\r\n폴더를 마우스 오른쪽 버튼으로 클릭하고 \"표시 이름 설정\"을 선택할 수도 있습니다.",
+            ["HotkeyRegisterFailed"] = "바로 가기 키 {0} 등록에 실패했습니다. 다른 앱에서 사용 중일 수 있습니다.\r\n\r\n설정에서 Ctrl + Alt + F4 같은 다른 조합으로 변경하세요.",
+            ["SettingsSaved"] = "설정이 저장되었습니다.",
+            ["SelectFolderFirst"] = "먼저 파일 탐색기에서 폴더를 선택하세요.",
+            ["InvalidFolder"] = "올바른 폴더를 선택하세요.",
+            ["RemarkSaved"] = "표시 이름이 저장되었습니다.",
+            ["WriteRemarkFailedTitle"] = "표시 이름 쓰기 실패",
+            ["UnauthorizedHint"] = "가능한 원인: desktop.ini 또는 대상 폴더의 읽기 전용/시스템 속성, 파일 사용 중, 또는 더 높은 권한 필요.",
+            ["RemarkDialogTitle"] = "폴더 표시 이름 설정",
+            ["PreviewDisplayName"] = "표시 이름 미리보기",
+            ["OriginalName"] = "원래 이름",
+            ["RemarkName"] = "표시 이름",
+            ["ShowOriginalName"] = "표시 이름 뒤에 원래 이름을 괄호로 표시",
+            ["Save"] = "저장",
+            ["Cancel"] = "취소",
+            ["OriginalNameRequired"] = "원래 이름은 비워 둘 수 없습니다.",
+            ["SettingsTitle"] = "폴더 표시 이름 설정",
+            ["SettingsSubtitle"] = "바로 가기, 컨텍스트 메뉴, 시작, 언어",
+            ["Hotkey"] = "바로 가기:",
+            ["Language"] = "언어:",
+            ["Options"] = "옵션",
+            ["ContextMenuOption"] = "파일 탐색기 폴더 컨텍스트 메뉴에 추가",
+            ["StartupOption"] = "Windows 시작 시 실행",
+            ["Hint"] = "팁: 컨텍스트 메뉴 변경은 현재 사용자 레지스트리에 즉시 기록됩니다.",
+            ["InvalidHotkey"] = "올바른 바로 가기 키를 먼저 설정하세요.",
+            ["About"] = "이 앱 정보",
+            ["OpenGitHub"] = "GitHub 열기",
+            ["ContextSetRemark"] = "표시 이름 설정",
+            ["LanguageAuto"] = "자동 (시스템)",
+            ["LanguageZhHans"] = "중국어 간체",
+            ["LanguageEn"] = "English",
+            ["LanguageJa"] = "日本語",
+            ["LanguageKo"] = "한국어",
+            ["RenameParentFailed"] = "상위 폴더를 가져올 수 없습니다.",
+            ["InvalidFileName"] = "원래 이름에 Windows에서 허용하지 않는 문자가 포함되어 있습니다.",
+            ["NameExists"] = "같은 위치에 같은 이름의 폴더 또는 파일이 이미 있습니다.",
+        },
+    };
+
+    public static readonly IReadOnlyList<LanguageOption> Languages = new[]
+    {
+        new LanguageOption("auto", "LanguageAuto"),
+        new LanguageOption("zh-Hans", "LanguageZhHans"),
+        new LanguageOption("zh-Hant", "LanguageZhHant"),
+        new LanguageOption("en", "LanguageEn"),
+        new LanguageOption("ja", "LanguageJa"),
+        new LanguageOption("ko", "LanguageKo"),
+    };
+
+    public static string ActiveLanguageCode { get; private set; } = ResolveLanguageCode("auto");
+
+    public static void Apply(string languageCode)
+    {
+        ActiveLanguageCode = ResolveLanguageCode(languageCode);
+    }
+
+    public static string T(string key)
+    {
+        if (Texts.TryGetValue(ActiveLanguageCode, out var current) && current.TryGetValue(key, out var text))
+            return text;
+
+        return Texts["en"].TryGetValue(key, out var fallback) ? fallback : key;
+    }
+
+    public static string Format(string key, params object[] args) => string.Format(CultureInfo.CurrentCulture, T(key), args);
+
+    public static string GetLanguageDisplayName(string code)
+    {
+        var option = Languages.FirstOrDefault(item => item.Code.Equals(code, StringComparison.OrdinalIgnoreCase)) ?? Languages[0];
+        return T(option.DisplayNameKey);
+    }
+
+    private static string ResolveLanguageCode(string languageCode)
+    {
+        if (!string.IsNullOrWhiteSpace(languageCode) && !languageCode.Equals("auto", StringComparison.OrdinalIgnoreCase))
+            return Texts.ContainsKey(languageCode) ? languageCode : "en";
+
+        var culture = CultureInfo.CurrentUICulture.Name;
+        if (culture.StartsWith("zh-Hant", StringComparison.OrdinalIgnoreCase) ||
+            culture.StartsWith("zh-TW", StringComparison.OrdinalIgnoreCase) ||
+            culture.StartsWith("zh-HK", StringComparison.OrdinalIgnoreCase) ||
+            culture.StartsWith("zh-MO", StringComparison.OrdinalIgnoreCase))
+            return "zh-Hant";
+        if (culture.StartsWith("zh", StringComparison.OrdinalIgnoreCase))
+            return "zh-Hans";
+        if (culture.StartsWith("ja", StringComparison.OrdinalIgnoreCase))
+            return "ja";
+        if (culture.StartsWith("ko", StringComparison.OrdinalIgnoreCase))
+            return "ko";
+        return "en";
+    }
+}
+
+internal sealed record LanguageOption(string Code, string DisplayNameKey);
+
 internal sealed class TrayContext : ApplicationContext
 {
     private readonly NotifyIcon notifyIcon;
@@ -62,6 +342,7 @@ internal sealed class TrayContext : ApplicationContext
     public TrayContext()
     {
         settings = SettingsStore.Load();
+        Localizer.Apply(settings.LanguageCode);
         ContextMenuInstaller.Apply(settings.ContextMenuEnabled);
         StartupManager.Apply(settings.StartWithWindows);
         invoker = new Control();
@@ -70,7 +351,7 @@ internal sealed class TrayContext : ApplicationContext
         notifyIcon = new NotifyIcon
         {
             Icon = AppIcon.CreateIcon(),
-            Text = "文件夹备注名",
+            Text = Localizer.T("AppName"),
             Visible = true,
             ContextMenuStrip = BuildMenu(),
         };
@@ -89,14 +370,14 @@ internal sealed class TrayContext : ApplicationContext
             ShowImageMargin = false,
             Padding = new Padding(2, 4, 2, 4),
         };
-        menu.Items.Add("设置...", null, (_, _) => ShowSettings());
-        menu.Items.Add("使用说明", null, (_, _) => MessageBox.Show(
-            $"在 Windows 资源管理器中选中一个文件夹，按 {settings.Hotkey.DisplayText} 设置备注名。\r\n\r\n也可以右键文件夹，选择“设置备注名”。",
-            "文件夹备注名",
+        menu.Items.Add(Localizer.T("SettingsMenu"), null, (_, _) => ShowSettings());
+        menu.Items.Add(Localizer.T("HelpMenu"), null, (_, _) => MessageBox.Show(
+            Localizer.Format("HelpText", settings.Hotkey.DisplayText),
+            Localizer.T("AppName"),
             MessageBoxButtons.OK,
             MessageBoxIcon.Information));
         menu.Items.Add(new ToolStripSeparator());
-        menu.Items.Add("退出", null, (_, _) => ExitThread());
+        menu.Items.Add(Localizer.T("ExitMenu"), null, (_, _) => ExitThread());
         return menu;
     }
 
@@ -122,8 +403,8 @@ internal sealed class TrayContext : ApplicationContext
         {
             CrashLog.Write(ex);
             MessageBox.Show(
-                $"快捷键 {settings.Hotkey.DisplayText} 注册失败，可能已被其他程序占用。\r\n\r\n请在设置里换一个组合键，例如 Ctrl + Alt + F4。",
-                "文件夹备注名",
+                Localizer.Format("HotkeyRegisterFailed", settings.Hotkey.DisplayText),
+                Localizer.T("AppName"),
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Warning);
         }
@@ -136,12 +417,14 @@ internal sealed class TrayContext : ApplicationContext
             return;
 
         settings = dialog.Settings;
+        Localizer.Apply(settings.LanguageCode);
         SettingsStore.Save(settings);
         ContextMenuInstaller.Apply(settings.ContextMenuEnabled);
         StartupManager.Apply(settings.StartWithWindows);
         RegisterConfiguredHotkey();
+        notifyIcon.Text = Localizer.T("AppName");
         notifyIcon.ContextMenuStrip = BuildMenu();
-        notifyIcon.ShowBalloonTip(1500, "文件夹备注名", "设置已保存。", ToolTipIcon.Info);
+        notifyIcon.ShowBalloonTip(1500, Localizer.T("AppName"), Localizer.T("SettingsSaved"), ToolTipIcon.Info);
     }
 
     private void OnHotkey()
@@ -161,7 +444,7 @@ internal sealed class TrayContext : ApplicationContext
         {
         if (!ExplorerSelection.TryGetSingleSelectedFolder(out var folderPath))
         {
-            notifyIcon.ShowBalloonTip(1500, "文件夹备注名", "请先在资源管理器中选中一个文件夹。", ToolTipIcon.Info);
+            notifyIcon.ShowBalloonTip(1500, Localizer.T("AppName"), Localizer.T("SelectFolderFirst"), ToolTipIcon.Info);
             return;
         }
 
@@ -170,7 +453,7 @@ internal sealed class TrayContext : ApplicationContext
         catch (Exception ex)
         {
             CrashLog.Write(ex);
-            MessageBox.Show(ex.Message, "文件夹备注名", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(ex.Message, Localizer.T("AppName"), MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         finally
         {
@@ -195,11 +478,12 @@ internal static class RemarkEditor
     {
         if (!Directory.Exists(folderPath))
         {
-            MessageBox.Show("请选择一个有效文件夹。", "文件夹备注名", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show(Localizer.T("InvalidFolder"), Localizer.T("AppName"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 
         var settings = SettingsStore.Load();
+        Localizer.Apply(settings.LanguageCode);
         using var dialog = new RemarkDialog(folderPath, DesktopIniRemarkStore.GetRemark(folderPath), settings.ShowOriginalNameInDisplayName);
         if (dialog.ShowDialog() != DialogResult.OK)
             return;
@@ -214,14 +498,14 @@ internal static class RemarkEditor
             DesktopIniRemarkStore.SetRemark(finalPath, dialog.Remark, settings.ShowOriginalNameInDisplayName);
             ShellRefresh.RefreshFolderChange(originalPath, finalPath);
             ExplorerRefreshService.RefreshOpenExplorerWindows(originalPath, finalPath);
-            notifyIcon?.ShowBalloonTip(1200, "文件夹备注名", "备注名已保存。", ToolTipIcon.Info);
+            notifyIcon?.ShowBalloonTip(1200, Localizer.T("AppName"), Localizer.T("RemarkSaved"), ToolTipIcon.Info);
         }
         catch (Exception ex)
         {
             var message = ex is UnauthorizedAccessException
-                ? $"{ex.Message}\r\n\r\n可能原因：desktop.ini 或目标文件夹带只读/系统属性、文件被占用，或该目录需要更高权限。"
+                ? $"{ex.Message}\r\n\r\n{Localizer.T("UnauthorizedHint")}"
                 : ex.Message;
-            MessageBox.Show(message, "写入备注失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(message, Localizer.T("WriteRemarkFailedTitle"), MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 }
@@ -240,7 +524,7 @@ internal sealed class RemarkDialog : Form
     public RemarkDialog(string folderPath, string currentRemark, bool showOriginalNameInDisplayName)
     {
         Icon = AppIcon.CreateIcon();
-        Text = "设置文件夹备注名";
+        Text = Localizer.T("RemarkDialogTitle");
         UiStyle.StyleForm(this);
         StartPosition = FormStartPosition.CenterScreen;
         FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -268,7 +552,7 @@ internal sealed class RemarkDialog : Form
 
         var previewHintLabel = new Label
         {
-            Text = "预览显示名",
+            Text = Localizer.T("PreviewDisplayName"),
             ForeColor = UiStyle.MutedTextColor,
             Location = new Point(32, 50),
             Size = new Size(496, 20),
@@ -277,7 +561,7 @@ internal sealed class RemarkDialog : Form
 
         var originalNameLabel = new Label
         {
-            Text = "原名",
+            Text = Localizer.T("OriginalName"),
             ForeColor = UiStyle.TextColor,
             Location = new Point(32, 112),
             Size = new Size(84, 26),
@@ -294,7 +578,7 @@ internal sealed class RemarkDialog : Form
 
         var remarkLabel = new Label
         {
-            Text = "备注名",
+            Text = Localizer.T("RemarkName"),
             ForeColor = UiStyle.TextColor,
             Location = new Point(32, 160),
             Size = new Size(84, 26),
@@ -311,7 +595,7 @@ internal sealed class RemarkDialog : Form
 
         showOriginalNameCheckBox = new CheckBox
         {
-            Text = "备注名后面用括号显示原名",
+            Text = Localizer.T("ShowOriginalName"),
             Checked = showOriginalNameInDisplayName,
             ForeColor = UiStyle.TextColor,
             Location = new Point(126, 206),
@@ -322,7 +606,7 @@ internal sealed class RemarkDialog : Form
 
         var okButton = new Button
         {
-            Text = "保存",
+            Text = Localizer.T("Save"),
             DialogResult = DialogResult.OK,
             Location = new Point(346, 262),
             Size = new Size(86, 34),
@@ -331,7 +615,7 @@ internal sealed class RemarkDialog : Form
 
         var cancelButton = new Button
         {
-            Text = "取消",
+            Text = Localizer.T("Cancel"),
             DialogResult = DialogResult.Cancel,
             Location = new Point(442, 262),
             Size = new Size(86, 34),
@@ -350,7 +634,7 @@ internal sealed class RemarkDialog : Form
         {
             if (string.IsNullOrWhiteSpace(OriginalName))
             {
-                MessageBox.Show("原名不能为空。", "文件夹备注名", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(Localizer.T("OriginalNameRequired"), Localizer.T("AppName"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 DialogResult = DialogResult.None;
             }
         };
@@ -383,6 +667,7 @@ internal sealed class RemarkDialog : Form
 internal sealed class SettingsForm : Form
 {
     private readonly HotkeyCaptureBox hotkeyBox;
+    private readonly ComboBox languageBox;
     private readonly CheckBox contextMenuCheckBox;
     private readonly CheckBox startupCheckBox;
     private readonly CheckBox showOriginalNameCheckBox;
@@ -393,25 +678,25 @@ internal sealed class SettingsForm : Form
     {
         Settings = current.Clone();
         Icon = AppIcon.CreateIcon();
-        Text = "文件夹备注名设置";
+        Text = Localizer.T("SettingsTitle");
         UiStyle.StyleForm(this);
         StartPosition = FormStartPosition.CenterScreen;
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
-        ClientSize = new Size(520, 364);
+        ClientSize = new Size(540, 428);
 
         var headerPanel = new Panel
         {
             BackColor = SystemColors.Window,
             Location = new Point(0, 0),
-            Size = new Size(520, 74),
+            Size = new Size(540, 74),
             Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
         };
 
         var titleLabel = new Label
         {
-            Text = "文件夹备注名",
+            Text = Localizer.T("AppName"),
             ForeColor = UiStyle.TextColor,
             Font = UiStyle.HeaderFont,
             Location = new Point(32, 18),
@@ -420,7 +705,7 @@ internal sealed class SettingsForm : Form
 
         var subtitleLabel = new Label
         {
-            Text = "快捷键、右键菜单和启动项设置",
+            Text = Localizer.T("SettingsSubtitle"),
             ForeColor = UiStyle.MutedTextColor,
             Location = new Point(32, 46),
             Size = new Size(456, 20),
@@ -429,57 +714,79 @@ internal sealed class SettingsForm : Form
 
         var hotkeyLabel = new Label
         {
-            Text = "快捷键：",
+            Text = Localizer.T("Hotkey"),
             ForeColor = UiStyle.TextColor,
             Location = new Point(32, 102),
-            Size = new Size(82, 24),
+            Size = new Size(90, 24),
             TextAlign = ContentAlignment.MiddleLeft,
         };
 
         hotkeyBox = new HotkeyCaptureBox
         {
             Hotkey = Settings.Hotkey,
-            Location = new Point(126, 98),
-            Size = new Size(362, 30),
+            Location = new Point(136, 98),
+            Size = new Size(372, 30),
         };
+
+        var languageLabel = new Label
+        {
+            Text = Localizer.T("Language"),
+            ForeColor = UiStyle.TextColor,
+            Location = new Point(32, 140),
+            Size = new Size(90, 24),
+            TextAlign = ContentAlignment.MiddleLeft,
+        };
+
+        languageBox = new ComboBox
+        {
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Location = new Point(136, 136),
+            Size = new Size(372, 30),
+        };
+        foreach (var language in Localizer.Languages)
+            languageBox.Items.Add(new LanguageComboItem(language.Code, Localizer.GetLanguageDisplayName(language.Code)));
+        languageBox.SelectedItem = languageBox.Items
+            .OfType<LanguageComboItem>()
+            .FirstOrDefault(item => item.Code.Equals(Settings.LanguageCode, StringComparison.OrdinalIgnoreCase))
+            ?? languageBox.Items[0];
 
         var optionsGroup = new GroupBox
         {
-            Text = "选项",
+            Text = Localizer.T("Options"),
             ForeColor = UiStyle.TextColor,
-            Location = new Point(32, 150),
-            Size = new Size(456, 116),
+            Location = new Point(32, 190),
+            Size = new Size(476, 116),
         };
 
         contextMenuCheckBox = new CheckBox
         {
-            Text = "加入资源管理器文件夹右键菜单",
+            Text = Localizer.T("ContextMenuOption"),
             Checked = Settings.ContextMenuEnabled,
             ForeColor = UiStyle.TextColor,
             Location = new Point(18, 28),
-            Size = new Size(410, 24),
+            Size = new Size(440, 24),
             FlatStyle = FlatStyle.System,
             UseVisualStyleBackColor = true,
         };
 
         startupCheckBox = new CheckBox
         {
-            Text = "开机自动启动",
+            Text = Localizer.T("StartupOption"),
             Checked = Settings.StartWithWindows,
             ForeColor = UiStyle.TextColor,
             Location = new Point(18, 56),
-            Size = new Size(410, 24),
+            Size = new Size(440, 24),
             FlatStyle = FlatStyle.System,
             UseVisualStyleBackColor = true,
         };
 
         showOriginalNameCheckBox = new CheckBox
         {
-            Text = "备注名后面用括号显示原名",
+            Text = Localizer.T("ShowOriginalName"),
             Checked = Settings.ShowOriginalNameInDisplayName,
             ForeColor = UiStyle.TextColor,
             Location = new Point(18, 84),
-            Size = new Size(410, 24),
+            Size = new Size(440, 24),
             FlatStyle = FlatStyle.System,
             UseVisualStyleBackColor = true,
         };
@@ -487,26 +794,35 @@ internal sealed class SettingsForm : Form
 
         var hintLabel = new Label
         {
-            Text = "提示：右键菜单会立即写入当前用户注册表，通常不需要重启 Windows。",
+            Text = Localizer.T("Hint"),
             ForeColor = UiStyle.MutedTextColor,
-            Location = new Point(32, 282),
-            Size = new Size(456, 20),
+            Location = new Point(32, 322),
+            Size = new Size(476, 20),
         };
+
+        var aboutButton = new Button
+        {
+            Text = Localizer.T("About"),
+            Location = new Point(32, 374),
+            Size = new Size(112, 32),
+        };
+        UiStyle.StyleSecondaryButton(aboutButton);
+        aboutButton.Click += (_, _) => OpenProjectPage();
 
         var okButton = new Button
         {
-            Text = "保存",
+            Text = Localizer.T("Save"),
             DialogResult = DialogResult.OK,
-            Location = new Point(318, 318),
+            Location = new Point(338, 374),
             Size = new Size(78, 32),
         };
         UiStyle.StylePrimaryButton(okButton);
 
         var cancelButton = new Button
         {
-            Text = "取消",
+            Text = Localizer.T("Cancel"),
             DialogResult = DialogResult.Cancel,
-            Location = new Point(410, 318),
+            Location = new Point(430, 374),
             Size = new Size(78, 32),
         };
         UiStyle.StyleSecondaryButton(cancelButton);
@@ -515,21 +831,36 @@ internal sealed class SettingsForm : Form
         {
             if (hotkeyBox.Hotkey.KeyCode == Keys.None)
             {
-                MessageBox.Show("请先设置一个有效快捷键。", "文件夹备注名", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(Localizer.T("InvalidHotkey"), Localizer.T("AppName"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 DialogResult = DialogResult.None;
                 return;
             }
 
             Settings.Hotkey = hotkeyBox.Hotkey;
+            Settings.LanguageCode = (languageBox.SelectedItem as LanguageComboItem)?.Code ?? "auto";
             Settings.ContextMenuEnabled = contextMenuCheckBox.Checked;
             Settings.StartWithWindows = startupCheckBox.Checked;
             Settings.ShowOriginalNameInDisplayName = showOriginalNameCheckBox.Checked;
         };
 
-        Controls.AddRange(new Control[] { headerPanel, hotkeyLabel, hotkeyBox, optionsGroup, hintLabel, okButton, cancelButton });
+        Controls.AddRange(new Control[] { headerPanel, hotkeyLabel, hotkeyBox, languageLabel, languageBox, optionsGroup, hintLabel, aboutButton, okButton, cancelButton });
         AcceptButton = okButton;
         CancelButton = cancelButton;
     }
+
+    private static void OpenProjectPage()
+    {
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = "https://github.com/wantosure/FolderRemarkNameTool",
+            UseShellExecute = true,
+        });
+    }
+}
+
+internal sealed record LanguageComboItem(string Code, string DisplayName)
+{
+    public override string ToString() => DisplayName;
 }
 
 internal sealed class HotkeyCaptureBox : TextBox
@@ -609,6 +940,7 @@ internal sealed class AppSettings
     public bool ContextMenuEnabled { get; set; } = true;
     public bool StartWithWindows { get; set; }
     public bool ShowOriginalNameInDisplayName { get; set; }
+    public string LanguageCode { get; set; } = "auto";
 
     public AppSettings Clone() => new()
     {
@@ -616,6 +948,7 @@ internal sealed class AppSettings
         ContextMenuEnabled = ContextMenuEnabled,
         StartWithWindows = StartWithWindows,
         ShowOriginalNameInDisplayName = ShowOriginalNameInDisplayName,
+        LanguageCode = LanguageCode,
     };
 }
 
@@ -888,7 +1221,7 @@ internal static class ContextMenuInstaller
         var exePath = Application.ExecutablePath;
         var iconPath = AppIcon.GetIconFilePath();
         using var key = Registry.CurrentUser.CreateSubKey(menuKey);
-        key?.SetValue("", "设置备注名");
+        key?.SetValue("", Localizer.T("ContextSetRemark"));
         key?.SetValue("Icon", iconPath);
         key?.DeleteValue("MUIVerb", false);
         key?.DeleteValue("SubCommands", false);
@@ -984,18 +1317,18 @@ internal static class FolderRenameService
     public static string RenameIfNeeded(string folderPath, string requestedName)
     {
         var parentPath = Directory.GetParent(folderPath)?.FullName
-            ?? throw new InvalidOperationException("无法获取父目录。");
+            ?? throw new InvalidOperationException(Localizer.T("RenameParentFailed"));
 
         var currentName = Path.GetFileName(folderPath);
         if (string.Equals(currentName, requestedName, StringComparison.Ordinal))
             return folderPath;
 
         if (requestedName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
-            throw new InvalidOperationException("原名包含 Windows 不允许的字符。");
+            throw new InvalidOperationException(Localizer.T("InvalidFileName"));
 
         var targetPath = Path.Combine(parentPath, requestedName);
         if (Directory.Exists(targetPath) || File.Exists(targetPath))
-            throw new InvalidOperationException("同一目录下已经存在这个名称。");
+            throw new InvalidOperationException(Localizer.T("NameExists"));
 
         Directory.Move(folderPath, targetPath);
         return targetPath;

@@ -22,6 +22,7 @@
 - 可选择显示为 `备注名（原名）`
 - 保持真实路径为英文/无特殊符号，同时在资源管理器显示中文备注名
 - 备注写入后长期有效，软件退出后仍可显示
+- 支持多语言界面，默认跟随系统，可在设置中切换
 - 默认加入资源管理器文件夹右键菜单，也支持在设置中移除
 - 支持开机自动启动
 - 备注写入目标文件夹内的 `desktop.ini`
@@ -38,9 +39,11 @@
 托盘图标右键选择“设置”，可以修改：
 
 - 快捷键
+- 界面语言
 - 是否加入资源管理器文件夹右键菜单
 - 是否开机自动启动
 - 是否在备注名后面用括号显示原名
+- 关于本软件：点击后打开 GitHub 项目主页
 
 ![设置界面](docs/images/settings.png)
 
@@ -103,6 +106,7 @@ Windows may show an unknown publisher warning because this project is not code-s
 - Optional display format: `Remark name (Original name)`
 - Keep real paths plain English / symbol-safe while showing a readable remark name in File Explorer
 - Persistent display after writing; the tool does not need to keep running
+- Multi-language UI, follows the system language by default and can be changed in settings
 - Explorer folder context menu enabled by default, removable from settings
 - Optional startup on Windows login
 - Stores remarks in the target folder's `desktop.ini`
@@ -119,9 +123,11 @@ Windows may show an unknown publisher warning because this project is not code-s
 Right-click the tray icon and choose "Settings" to configure:
 
 - Keyboard shortcut
+- UI language
 - Explorer folder context menu
 - Start with Windows
 - Show original name in parentheses after the remark name
+- About this app: opens the GitHub project page
 
 ![Settings](docs/images/settings.png)
 
