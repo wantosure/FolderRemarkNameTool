@@ -82,13 +82,20 @@ internal sealed class TrayContext : ApplicationContext
 
     private ContextMenuStrip BuildMenu()
     {
-        var menu = new ContextMenuStrip();
-        menu.Items.Add("设置", null, (_, _) => ShowSettings());
-        menu.Items.Add("说明", null, (_, _) => MessageBox.Show(
+        var menu = new ContextMenuStrip
+        {
+            Font = UiStyle.MenuFont,
+            RenderMode = ToolStripRenderMode.System,
+            ShowImageMargin = false,
+            Padding = new Padding(2, 4, 2, 4),
+        };
+        menu.Items.Add("设置...", null, (_, _) => ShowSettings());
+        menu.Items.Add("使用说明", null, (_, _) => MessageBox.Show(
             $"在 Windows 资源管理器中选中一个文件夹，按 {settings.Hotkey.DisplayText} 设置备注名。\r\n\r\n右键菜单可直接设置备注，也可以重启工具。",
             "文件夹备注名",
             MessageBoxButtons.OK,
             MessageBoxIcon.Information));
+        menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("退出", null, (_, _) => ExitThread());
         return menu;
     }
@@ -234,13 +241,20 @@ internal sealed class RemarkDialog : Form
     {
         Icon = AppIcon.CreateIcon();
         Text = "设置文件夹备注名";
-        Font = UiStyle.AppFont;
-        BackColor = UiStyle.WindowBackColor;
+        UiStyle.StyleForm(this);
         StartPosition = FormStartPosition.CenterScreen;
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
-        ClientSize = new Size(560, 286);
+        ClientSize = new Size(560, 320);
+
+        var headerPanel = new Panel
+        {
+            BackColor = SystemColors.Window,
+            Location = new Point(0, 0),
+            Size = new Size(560, 82),
+            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+        };
 
         previewTitleLabel = new Label
         {
@@ -248,23 +262,32 @@ internal sealed class RemarkDialog : Form
             ForeColor = UiStyle.TextColor,
             Font = UiStyle.HeaderFont,
             AutoEllipsis = true,
-            Location = new Point(32, 28),
-            Size = new Size(496, 30),
+            Location = new Point(32, 20),
+            Size = new Size(496, 28),
         };
+
+        var previewHintLabel = new Label
+        {
+            Text = "预览显示名",
+            ForeColor = UiStyle.MutedTextColor,
+            Location = new Point(32, 50),
+            Size = new Size(496, 20),
+        };
+        headerPanel.Controls.AddRange(new Control[] { previewTitleLabel, previewHintLabel });
 
         var originalNameLabel = new Label
         {
             Text = "原名",
             ForeColor = UiStyle.TextColor,
-            Location = new Point(32, 84),
+            Location = new Point(32, 112),
             Size = new Size(84, 26),
+            TextAlign = ContentAlignment.MiddleLeft,
         };
 
         originalNameBox = new TextBox
         {
             Text = Path.GetFileName(folderPath),
-            BorderStyle = BorderStyle.FixedSingle,
-            Location = new Point(126, 80),
+            Location = new Point(126, 108),
             Size = new Size(402, 30),
         };
         UiStyle.StyleTextBox(originalNameBox);
@@ -273,15 +296,15 @@ internal sealed class RemarkDialog : Form
         {
             Text = "备注名",
             ForeColor = UiStyle.TextColor,
-            Location = new Point(32, 132),
+            Location = new Point(32, 160),
             Size = new Size(84, 26),
+            TextAlign = ContentAlignment.MiddleLeft,
         };
 
         remarkBox = new TextBox
         {
             Text = currentRemark,
-            BorderStyle = BorderStyle.FixedSingle,
-            Location = new Point(126, 128),
+            Location = new Point(126, 156),
             Size = new Size(402, 30),
         };
         UiStyle.StyleTextBox(remarkBox);
@@ -291,17 +314,18 @@ internal sealed class RemarkDialog : Form
             Text = "备注名后面用括号显示原名",
             Checked = showOriginalNameInDisplayName,
             ForeColor = UiStyle.TextColor,
-            Location = new Point(126, 178),
+            Location = new Point(126, 206),
             Size = new Size(360, 28),
             FlatStyle = FlatStyle.System,
+            UseVisualStyleBackColor = true,
         };
 
         var okButton = new Button
         {
             Text = "保存",
             DialogResult = DialogResult.OK,
-            Location = new Point(358, 224),
-            Size = new Size(80, 36),
+            Location = new Point(346, 262),
+            Size = new Size(86, 34),
         };
         UiStyle.StylePrimaryButton(okButton);
 
@@ -309,12 +333,12 @@ internal sealed class RemarkDialog : Form
         {
             Text = "取消",
             DialogResult = DialogResult.Cancel,
-            Location = new Point(448, 224),
-            Size = new Size(80, 36),
+            Location = new Point(442, 262),
+            Size = new Size(86, 34),
         };
         UiStyle.StyleSecondaryButton(cancelButton);
 
-        Controls.AddRange(new Control[] { previewTitleLabel, originalNameLabel, originalNameBox, remarkLabel, remarkBox, showOriginalNameCheckBox, okButton, cancelButton });
+        Controls.AddRange(new Control[] { headerPanel, originalNameLabel, originalNameBox, remarkLabel, remarkBox, showOriginalNameCheckBox, okButton, cancelButton });
         AcceptButton = okButton;
         CancelButton = cancelButton;
 
@@ -370,27 +394,61 @@ internal sealed class SettingsForm : Form
         Settings = current.Clone();
         Icon = AppIcon.CreateIcon();
         Text = "文件夹备注名设置";
-        Font = UiStyle.AppFont;
-        BackColor = UiStyle.WindowBackColor;
+        UiStyle.StyleForm(this);
         StartPosition = FormStartPosition.CenterScreen;
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
-        ClientSize = new Size(500, 336);
+        ClientSize = new Size(520, 364);
+
+        var headerPanel = new Panel
+        {
+            BackColor = SystemColors.Window,
+            Location = new Point(0, 0),
+            Size = new Size(520, 74),
+            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+        };
+
+        var titleLabel = new Label
+        {
+            Text = "文件夹备注名",
+            ForeColor = UiStyle.TextColor,
+            Font = UiStyle.HeaderFont,
+            Location = new Point(32, 18),
+            Size = new Size(456, 26),
+        };
+
+        var subtitleLabel = new Label
+        {
+            Text = "快捷键、右键菜单和启动项设置",
+            ForeColor = UiStyle.MutedTextColor,
+            Location = new Point(32, 46),
+            Size = new Size(456, 20),
+        };
+        headerPanel.Controls.AddRange(new Control[] { titleLabel, subtitleLabel });
 
         var hotkeyLabel = new Label
         {
             Text = "快捷键：",
             ForeColor = UiStyle.TextColor,
-            Location = new Point(32, 40),
+            Location = new Point(32, 102),
             Size = new Size(82, 24),
+            TextAlign = ContentAlignment.MiddleLeft,
         };
 
         hotkeyBox = new HotkeyCaptureBox
         {
             Hotkey = Settings.Hotkey,
-            Location = new Point(126, 35),
-            Size = new Size(330, 32),
+            Location = new Point(126, 98),
+            Size = new Size(362, 30),
+        };
+
+        var optionsGroup = new GroupBox
+        {
+            Text = "选项",
+            ForeColor = UiStyle.TextColor,
+            Location = new Point(32, 150),
+            Size = new Size(456, 116),
         };
 
         contextMenuCheckBox = new CheckBox
@@ -398,9 +456,10 @@ internal sealed class SettingsForm : Form
             Text = "加入资源管理器文件夹右键菜单",
             Checked = Settings.ContextMenuEnabled,
             ForeColor = UiStyle.TextColor,
-            Location = new Point(126, 92),
-            Size = new Size(330, 26),
+            Location = new Point(18, 28),
+            Size = new Size(410, 24),
             FlatStyle = FlatStyle.System,
+            UseVisualStyleBackColor = true,
         };
 
         startupCheckBox = new CheckBox
@@ -408,9 +467,10 @@ internal sealed class SettingsForm : Form
             Text = "开机自动启动",
             Checked = Settings.StartWithWindows,
             ForeColor = UiStyle.TextColor,
-            Location = new Point(126, 128),
-            Size = new Size(330, 26),
+            Location = new Point(18, 56),
+            Size = new Size(410, 24),
             FlatStyle = FlatStyle.System,
+            UseVisualStyleBackColor = true,
         };
 
         showOriginalNameCheckBox = new CheckBox
@@ -418,25 +478,27 @@ internal sealed class SettingsForm : Form
             Text = "备注名后面用括号显示原名",
             Checked = Settings.ShowOriginalNameInDisplayName,
             ForeColor = UiStyle.TextColor,
-            Location = new Point(126, 164),
-            Size = new Size(330, 26),
+            Location = new Point(18, 84),
+            Size = new Size(410, 24),
             FlatStyle = FlatStyle.System,
+            UseVisualStyleBackColor = true,
         };
+        optionsGroup.Controls.AddRange(new Control[] { contextMenuCheckBox, startupCheckBox, showOriginalNameCheckBox });
 
         var hintLabel = new Label
         {
             Text = "提示：右键菜单会立即写入当前用户注册表，通常不需要重启 Windows。",
             ForeColor = UiStyle.MutedTextColor,
-            Location = new Point(126, 212),
-            Size = new Size(330, 38),
+            Location = new Point(32, 282),
+            Size = new Size(456, 20),
         };
 
         var okButton = new Button
         {
             Text = "保存",
             DialogResult = DialogResult.OK,
-            Location = new Point(304, 280),
-            Size = new Size(72, 34),
+            Location = new Point(318, 318),
+            Size = new Size(78, 32),
         };
         UiStyle.StylePrimaryButton(okButton);
 
@@ -444,8 +506,8 @@ internal sealed class SettingsForm : Form
         {
             Text = "取消",
             DialogResult = DialogResult.Cancel,
-            Location = new Point(384, 280),
-            Size = new Size(72, 34),
+            Location = new Point(410, 318),
+            Size = new Size(78, 32),
         };
         UiStyle.StyleSecondaryButton(cancelButton);
 
@@ -464,7 +526,7 @@ internal sealed class SettingsForm : Form
             Settings.ShowOriginalNameInDisplayName = showOriginalNameCheckBox.Checked;
         };
 
-        Controls.AddRange(new Control[] { hotkeyLabel, hotkeyBox, contextMenuCheckBox, startupCheckBox, showOriginalNameCheckBox, hintLabel, okButton, cancelButton });
+        Controls.AddRange(new Control[] { headerPanel, hotkeyLabel, hotkeyBox, optionsGroup, hintLabel, okButton, cancelButton });
         AcceptButton = okButton;
         CancelButton = cancelButton;
     }
@@ -745,42 +807,39 @@ internal static class AppRestarter
 
 internal static class UiStyle
 {
-    public static readonly Font AppFont = new("Microsoft YaHei UI", 9.5f);
+    public static readonly Font AppFont = new("Microsoft YaHei UI", 9.25f);
+    public static readonly Font MenuFont = new("Microsoft YaHei UI", 9f);
     public static readonly Font TitleFont = new("Microsoft YaHei UI", 10.5f, FontStyle.Bold);
-    public static readonly Font HeaderFont = new("Microsoft YaHei UI", 13f, FontStyle.Bold);
-    public static readonly Color WindowBackColor = Color.FromArgb(245, 247, 250);
-    public static readonly Color TextColor = Color.FromArgb(0, 0, 0);
-    public static readonly Color MutedTextColor = Color.FromArgb(89, 89, 89);
-    private static readonly Color PrimaryColor = Color.FromArgb(22, 119, 255);
-    private static readonly Color BorderColor = Color.FromArgb(217, 217, 217);
+    public static readonly Font HeaderFont = new("Microsoft YaHei UI", 13.5f, FontStyle.Bold);
+    public static readonly Color WindowBackColor = SystemColors.Control;
+    public static readonly Color TextColor = SystemColors.ControlText;
+    public static readonly Color MutedTextColor = SystemColors.GrayText;
+    public static void StyleForm(Form form)
+    {
+        form.Font = AppFont;
+        form.BackColor = WindowBackColor;
+    }
 
     public static void StylePrimaryButton(Button button)
     {
-        button.FlatStyle = FlatStyle.Flat;
-        button.FlatAppearance.BorderSize = 0;
-        button.FlatAppearance.MouseOverBackColor = Color.FromArgb(64, 150, 255);
-        button.FlatAppearance.MouseDownBackColor = Color.FromArgb(9, 88, 217);
-        button.BackColor = PrimaryColor;
+        button.FlatStyle = FlatStyle.System;
+        button.UseVisualStyleBackColor = true;
         button.ForeColor = Color.White;
         button.Font = AppFont;
     }
 
     public static void StyleSecondaryButton(Button button)
     {
-        button.FlatStyle = FlatStyle.Flat;
-        button.FlatAppearance.BorderColor = BorderColor;
-        button.FlatAppearance.BorderSize = 1;
-        button.FlatAppearance.MouseOverBackColor = Color.FromArgb(250, 250, 250);
-        button.FlatAppearance.MouseDownBackColor = Color.FromArgb(240, 240, 240);
-        button.BackColor = Color.White;
+        button.FlatStyle = FlatStyle.System;
+        button.UseVisualStyleBackColor = true;
         button.ForeColor = TextColor;
         button.Font = AppFont;
     }
 
     public static void StyleTextBox(TextBox textBox)
     {
-        textBox.BorderStyle = BorderStyle.FixedSingle;
-        textBox.BackColor = Color.White;
+        textBox.BorderStyle = BorderStyle.Fixed3D;
+        textBox.BackColor = SystemColors.Window;
         textBox.ForeColor = TextColor;
         textBox.Font = AppFont;
     }
@@ -831,7 +890,7 @@ internal static class ContextMenuInstaller
         var exePath = Application.ExecutablePath;
         var iconPath = AppIcon.GetIconFilePath();
         using var key = Registry.CurrentUser.CreateSubKey(menuKey);
-        key?.SetValue("", "设置文件夹备注名");
+        key?.SetValue("", "设置备注名");
         key?.SetValue("Icon", iconPath);
         key?.DeleteValue("MUIVerb", false);
         key?.DeleteValue("SubCommands", false);
@@ -849,7 +908,7 @@ internal static class ContextMenuInstaller
         var exePath = Application.ExecutablePath;
         var iconPath = AppIcon.GetIconFilePath();
         using var restartKey = Registry.CurrentUser.CreateSubKey(menuKey);
-        restartKey?.SetValue("", "重启文件夹备注名工具");
+        restartKey?.SetValue("", "重启备注工具");
         restartKey?.SetValue("Icon", iconPath);
         restartKey?.DeleteValue("MUIVerb", false);
         restartKey?.DeleteValue("SubCommands", false);
