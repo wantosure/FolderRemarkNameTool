@@ -91,7 +91,7 @@ internal sealed class TrayContext : ApplicationContext
         };
         menu.Items.Add("设置...", null, (_, _) => ShowSettings());
         menu.Items.Add("使用说明", null, (_, _) => MessageBox.Show(
-            $"在 Windows 资源管理器中选中一个文件夹，按 {settings.Hotkey.DisplayText} 设置备注名。\r\n\r\n右键菜单可直接设置备注，也可以重启工具。",
+            $"在 Windows 资源管理器中选中一个文件夹，按 {settings.Hotkey.DisplayText} 设置备注名。\r\n\r\n也可以右键文件夹，选择“设置备注名”。",
             "文件夹备注名",
             MessageBoxButtons.OK,
             MessageBoxIcon.Information));
@@ -865,8 +865,6 @@ internal static class ContextMenuInstaller
         {
             TryInstall(() => InstallSetRemarkKey(FolderDirectMenuKey, "%1"));
             TryInstall(() => InstallSetRemarkKey(BackgroundDirectMenuKey, "%V"));
-            TryInstall(() => InstallRestartKey(FolderDirectRestartMenuKey));
-            TryInstall(() => InstallRestartKey(BackgroundDirectRestartMenuKey));
         }
     }
 
@@ -898,24 +896,6 @@ internal static class ContextMenuInstaller
         using var setRemarkCommandKey = Registry.CurrentUser.CreateSubKey(menuKey + @"\command");
         setRemarkCommandKey?.SetValue("", $"\"{exePath}\" --set-remark \"{folderArgument}\"");
         CrashLog.WriteMessage($"安装设置备注菜单：{menuKey}");
-    }
-
-    private static void InstallRestartKey(string menuKey)
-    {
-        DeleteRegistryTree(menuKey + @"\shell");
-        DeleteRegistryTree(menuKey + @"\command");
-
-        var exePath = Application.ExecutablePath;
-        var iconPath = AppIcon.GetIconFilePath();
-        using var restartKey = Registry.CurrentUser.CreateSubKey(menuKey);
-        restartKey?.SetValue("", "重启备注工具");
-        restartKey?.SetValue("Icon", iconPath);
-        restartKey?.DeleteValue("MUIVerb", false);
-        restartKey?.DeleteValue("SubCommands", false);
-
-        using var restartCommandKey = Registry.CurrentUser.CreateSubKey(menuKey + @"\command");
-        restartCommandKey?.SetValue("", $"\"{exePath}\" --restart-app");
-        CrashLog.WriteMessage($"安装重启菜单：{menuKey}");
     }
 
     private static void Uninstall()

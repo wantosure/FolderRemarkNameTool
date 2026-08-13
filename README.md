@@ -4,7 +4,7 @@
 
 一个 Windows 托盘小工具，用来给资源管理器里的文件夹设置“备注名”。真实文件夹名不变，备注显示名通过 `desktop.ini` 保存。
 
-![设置备注名](docs/images/remark-dialog.png)
+![文件夹备注名使用说明](docs/images/usage-guide.png)
 
 ## 功能
 
@@ -22,8 +22,6 @@
 2. 在 Windows 资源管理器中选中一个文件夹。
 3. 按快捷键，输入备注名并保存。
 4. 也可以右键文件夹，选择“设置文件夹备注名”。
-
-![右键菜单](docs/images/context-menu.png)
 
 ## 设置
 
@@ -75,7 +73,7 @@ dotnet publish .\FolderRemarkNameTool.csproj -c Release -p:Platform=x64
 
 A small Windows tray utility for assigning a remark display name to folders in File Explorer. The real folder name stays unchanged, while the display name is stored through `desktop.ini`.
 
-![Remark dialog](docs/images/remark-dialog.png)
+![Folder Remark Name Tool usage guide](docs/images/usage-guide.png)
 
 ## Features
 
@@ -93,8 +91,6 @@ A small Windows tray utility for assigning a remark display name to folders in F
 2. Select a folder in Windows File Explorer.
 3. Press the configured shortcut, enter a remark name, and save.
 4. You can also right-click a folder and choose "Set folder remark name".
-
-![Context menu](docs/images/context-menu.png)
 
 ## Settings
 
