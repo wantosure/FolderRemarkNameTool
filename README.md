@@ -17,7 +17,7 @@
 ## 功能
 
 - 在 Windows 资源管理器中选中文件夹后，用快捷键打开备注窗口
-- 默认快捷键为 `F4`，也支持在设置中自定义快捷键
+- 默认快捷键为 `F2`，也支持在设置中自定义快捷键
 - 可同时修改真实文件夹名和备注名
 - 可选择显示为 `备注名（原名）`
 - 保持真实路径为英文/无特殊符号，同时在资源管理器显示中文备注名
@@ -53,7 +53,7 @@ Windows 资源管理器没有开放“显示名”和“真实文件夹名”完
 
 因为显示名保存在目标文件夹自己的 `desktop.ini` 中，所以它不是临时覆盖层，也不依赖本工具持续运行。设置成功后，即使退出本工具，资源管理器仍会按照 Windows Shell 机制显示备注名。
 
-单独的 `F4` 默认会被资源管理器用于地址栏/导航栏，因此本工具对 `F4` 使用轻量键盘钩子，只在资源管理器前台时处理。带修饰键的组合快捷键使用 `RegisterHotKey`。
+默认使用 `F2` 是因为它更符合“重命名”的直觉：打开窗口后可以同时修改真实文件夹名和备注显示名。本工具对单独功能键使用轻量键盘钩子，只在资源管理器前台时处理；带修饰键的组合快捷键使用 `RegisterHotKey`。
 
 ## 限制
 
@@ -101,7 +101,7 @@ Windows may show an unknown publisher warning because this project is not code-s
 ## Features
 
 - Open the remark dialog from File Explorer with a keyboard shortcut
-- Default shortcut is `F4`; custom shortcuts are supported in settings
+- Default shortcut is `F2`; custom shortcuts are supported in settings
 - Edit both the real folder name and the remark name
 - Optional display format: `Remark name (Original name)`
 - Keep real paths plain English / symbol-safe while showing a readable remark name in File Explorer
@@ -137,7 +137,7 @@ Windows File Explorer does not provide a normal plugin API that fully separates 
 
 Because the display name is stored in the target folder's own `desktop.ini`, it is not a temporary overlay and does not depend on this tool staying open. After the remark is saved, File Explorer can continue showing it through the Windows Shell mechanism even when this tool is closed.
 
-Plain `F4` is commonly used by File Explorer for the address/navigation bar, so this tool handles it with a lightweight keyboard hook only when File Explorer is in the foreground. Shortcuts with modifier keys use `RegisterHotKey`.
+The default shortcut is `F2` because it matches the rename workflow: the dialog can edit both the real folder name and the remark display name. Plain function keys are handled with a lightweight keyboard hook only when File Explorer is in the foreground. Shortcuts with modifier keys use `RegisterHotKey`.
 
 ## Limitations
 

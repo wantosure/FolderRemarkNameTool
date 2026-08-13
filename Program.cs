@@ -74,7 +74,7 @@ internal static class Localizer
             ["HelpMenu"] = "Help",
             ["ExitMenu"] = "Exit",
             ["HelpText"] = "Select a folder in Windows File Explorer, then press {0} to set its remark name.\r\n\r\nYou can also right-click a folder and choose \"Set remark name\".",
-            ["HotkeyRegisterFailed"] = "Shortcut {0} registration failed. It may already be used by another app.\r\n\r\nPlease choose another shortcut in settings, such as Ctrl + Alt + F4.",
+            ["HotkeyRegisterFailed"] = "Shortcut {0} registration failed. It may already be used by another app.\r\n\r\nPlease choose another shortcut in settings, such as Ctrl + Alt + F2.",
             ["SettingsSaved"] = "Settings saved.",
             ["SelectFolderFirst"] = "Please select a folder in File Explorer first.",
             ["InvalidFolder"] = "Please select a valid folder.",
@@ -119,7 +119,7 @@ internal static class Localizer
             ["HelpMenu"] = "使用说明",
             ["ExitMenu"] = "退出",
             ["HelpText"] = "在 Windows 资源管理器中选中一个文件夹，按 {0} 设置备注名。\r\n\r\n也可以右键文件夹，选择“设置备注名”。",
-            ["HotkeyRegisterFailed"] = "快捷键 {0} 注册失败，可能已被其他程序占用。\r\n\r\n请在设置里换一个组合键，例如 Ctrl + Alt + F4。",
+            ["HotkeyRegisterFailed"] = "快捷键 {0} 注册失败，可能已被其他程序占用。\r\n\r\n请在设置里换一个组合键，例如 Ctrl + Alt + F2。",
             ["SettingsSaved"] = "设置已保存。",
             ["SelectFolderFirst"] = "请先在资源管理器中选中一个文件夹。",
             ["InvalidFolder"] = "请选择一个有效文件夹。",
@@ -164,7 +164,7 @@ internal static class Localizer
             ["HelpMenu"] = "使用說明",
             ["ExitMenu"] = "結束",
             ["HelpText"] = "在 Windows 檔案總管中選取一個資料夾，按 {0} 設定備註名。\r\n\r\n也可以右鍵資料夾，選擇「設定備註名」。",
-            ["HotkeyRegisterFailed"] = "快捷鍵 {0} 註冊失敗，可能已被其他程式占用。\r\n\r\n請在設定裡換一個組合鍵，例如 Ctrl + Alt + F4。",
+            ["HotkeyRegisterFailed"] = "快捷鍵 {0} 註冊失敗，可能已被其他程式占用。\r\n\r\n請在設定裡換一個組合鍵，例如 Ctrl + Alt + F2。",
             ["SettingsSaved"] = "設定已儲存。",
             ["SelectFolderFirst"] = "請先在檔案總管中選取一個資料夾。",
             ["InvalidFolder"] = "請選擇一個有效資料夾。",
@@ -210,7 +210,7 @@ internal static class Localizer
             ["HelpMenu"] = "使い方",
             ["ExitMenu"] = "終了",
             ["HelpText"] = "Windows エクスプローラーでフォルダーを選択し、{0} を押して備考名を設定します。\r\n\r\nフォルダーを右クリックして「備考名を設定」を選ぶこともできます。",
-            ["HotkeyRegisterFailed"] = "ショートカット {0} の登録に失敗しました。他のアプリで使用されている可能性があります。\r\n\r\n設定で Ctrl + Alt + F4 など別のショートカットに変更してください。",
+            ["HotkeyRegisterFailed"] = "ショートカット {0} の登録に失敗しました。他のアプリで使用されている可能性があります。\r\n\r\n設定で Ctrl + Alt + F2 など別のショートカットに変更してください。",
             ["SettingsSaved"] = "設定を保存しました。",
             ["SelectFolderFirst"] = "先にエクスプローラーでフォルダーを選択してください。",
             ["InvalidFolder"] = "有効なフォルダーを選択してください。",
@@ -255,7 +255,7 @@ internal static class Localizer
             ["HelpMenu"] = "사용법",
             ["ExitMenu"] = "종료",
             ["HelpText"] = "Windows 파일 탐색기에서 폴더를 선택한 뒤 {0} 키로 표시 이름을 설정합니다.\r\n\r\n폴더를 마우스 오른쪽 버튼으로 클릭하고 \"표시 이름 설정\"을 선택할 수도 있습니다.",
-            ["HotkeyRegisterFailed"] = "바로 가기 키 {0} 등록에 실패했습니다. 다른 앱에서 사용 중일 수 있습니다.\r\n\r\n설정에서 Ctrl + Alt + F4 같은 다른 조합으로 변경하세요.",
+            ["HotkeyRegisterFailed"] = "바로 가기 키 {0} 등록에 실패했습니다. 다른 앱에서 사용 중일 수 있습니다.\r\n\r\n설정에서 Ctrl + Alt + F2 같은 다른 조합으로 변경하세요.",
             ["SettingsSaved"] = "설정이 저장되었습니다.",
             ["SelectFolderFirst"] = "먼저 파일 탐색기에서 폴더를 선택하세요.",
             ["InvalidFolder"] = "올바른 폴더를 선택하세요.",
@@ -1036,9 +1036,9 @@ internal sealed class AppSettings
 
 internal sealed class HotkeyGesture
 {
-    public static HotkeyGesture Default => new() { KeyCode = Keys.F4 };
+    public static HotkeyGesture Default => new() { KeyCode = Keys.F2 };
 
-    public Keys KeyCode { get; set; } = Keys.F4;
+    public Keys KeyCode { get; set; } = Keys.F2;
     public bool Control { get; set; }
     public bool Alt { get; set; }
     public bool Shift { get; set; }
