@@ -6,6 +6,12 @@
 
 ![文件夹备注名使用说明](docs/images/usage-guide.png)
 
+## 下载安装
+
+普通用户不需要编译源码。请到 [Releases](https://github.com/wantosure/FolderRemarkNameTool/releases) 下载最新的 `FolderRemarkNameTool-*-win-x64.zip`，解压后运行 `FolderRemarkNameTool.exe`。
+
+如果 Windows 提示未知发布者，这是因为当前版本没有代码签名证书。确认来源是本仓库 Release 后再运行。
+
 ## 功能
 
 - 在 Windows 资源管理器中选中文件夹后，用快捷键打开备注窗口
@@ -74,6 +80,12 @@ dotnet publish .\FolderRemarkNameTool.csproj -c Release -p:Platform=x64
 A small Windows tray utility for assigning a remark display name to folders in File Explorer. The real folder name stays unchanged, while the display name is stored through `desktop.ini`.
 
 ![Folder Remark Name Tool usage guide](docs/images/usage-guide.png)
+
+## Download
+
+End users do not need to build from source. Download the latest `FolderRemarkNameTool-*-win-x64.zip` from [Releases](https://github.com/wantosure/FolderRemarkNameTool/releases), extract it, and run `FolderRemarkNameTool.exe`.
+
+Windows may show an unknown publisher warning because this project is not code-signed yet. Only run builds downloaded from this repository's Releases page.
 
 ## Features
 
