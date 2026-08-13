@@ -26,7 +26,18 @@ internal static class Program
 
         if (args.Length >= 2 && args[0].Equals("--set-remark", StringComparison.OrdinalIgnoreCase))
         {
-            RemarkEditor.EditFolder(args[1], null);
+            if (args.Length >= 5 && args[2].Equals("--original-name", StringComparison.OrdinalIgnoreCase))
+            {
+                var showOriginalName = args.Length >= 7 &&
+                    args[5].Equals("--show-original-name", StringComparison.OrdinalIgnoreCase) &&
+                    bool.TryParse(args[6], out var parsedShowOriginalName) &&
+                    parsedShowOriginalName;
+                RemarkEditor.ApplyRemark(args[1], args[3], args[4], showOriginalName, null);
+            }
+            else
+            {
+                RemarkEditor.EditFolder(args[1], null);
+            }
             return;
         }
 
@@ -70,6 +81,8 @@ internal static class Localizer
             ["RemarkSaved"] = "Remark name saved.",
             ["WriteRemarkFailedTitle"] = "Failed to write remark",
             ["UnauthorizedHint"] = "Possible causes: desktop.ini or the target folder has read-only/system attributes, the file is in use, or this folder requires higher permissions.",
+            ["RetryAsAdmin"] = "Retry as administrator",
+            ["AdminRetryFailed"] = "Failed to start administrator retry.",
             ["RemarkDialogTitle"] = "Set Folder Remark Name",
             ["PreviewDisplayName"] = "Display name preview",
             ["OriginalName"] = "Original name",
@@ -113,6 +126,8 @@ internal static class Localizer
             ["RemarkSaved"] = "备注名已保存。",
             ["WriteRemarkFailedTitle"] = "写入备注失败",
             ["UnauthorizedHint"] = "可能原因：desktop.ini 或目标文件夹带只读/系统属性、文件被占用，或该目录需要更高权限。",
+            ["RetryAsAdmin"] = "以管理员权限重试",
+            ["AdminRetryFailed"] = "启动管理员重试失败。",
             ["RemarkDialogTitle"] = "设置文件夹备注名",
             ["PreviewDisplayName"] = "预览显示名",
             ["OriginalName"] = "原名",
@@ -156,6 +171,8 @@ internal static class Localizer
             ["RemarkSaved"] = "備註名已儲存。",
             ["WriteRemarkFailedTitle"] = "寫入備註失敗",
             ["UnauthorizedHint"] = "可能原因：desktop.ini 或目標資料夾帶唯讀/系統屬性、檔案被占用，或該目錄需要更高權限。",
+            ["RetryAsAdmin"] = "以系統管理員權限重試",
+            ["AdminRetryFailed"] = "啟動系統管理員重試失敗。",
             ["RemarkDialogTitle"] = "設定資料夾備註名",
             ["PreviewDisplayName"] = "預覽顯示名",
             ["OriginalName"] = "原名",
@@ -200,6 +217,8 @@ internal static class Localizer
             ["RemarkSaved"] = "備考名を保存しました。",
             ["WriteRemarkFailedTitle"] = "備考名の書き込みに失敗しました",
             ["UnauthorizedHint"] = "考えられる原因: desktop.ini または対象フォルダーが読み取り専用/システム属性、ファイルが使用中、または高い権限が必要です。",
+            ["RetryAsAdmin"] = "管理者として再試行",
+            ["AdminRetryFailed"] = "管理者としての再試行を開始できませんでした。",
             ["RemarkDialogTitle"] = "フォルダー備考名を設定",
             ["PreviewDisplayName"] = "表示名プレビュー",
             ["OriginalName"] = "元の名前",
@@ -243,6 +262,8 @@ internal static class Localizer
             ["RemarkSaved"] = "표시 이름이 저장되었습니다.",
             ["WriteRemarkFailedTitle"] = "표시 이름 쓰기 실패",
             ["UnauthorizedHint"] = "가능한 원인: desktop.ini 또는 대상 폴더의 읽기 전용/시스템 속성, 파일 사용 중, 또는 더 높은 권한 필요.",
+            ["RetryAsAdmin"] = "관리자 권한으로 다시 시도",
+            ["AdminRetryFailed"] = "관리자 권한 다시 시도를 시작하지 못했습니다.",
             ["RemarkDialogTitle"] = "폴더 표시 이름 설정",
             ["PreviewDisplayName"] = "표시 이름 미리보기",
             ["OriginalName"] = "원래 이름",
@@ -488,26 +509,87 @@ internal static class RemarkEditor
         if (dialog.ShowDialog() != DialogResult.OK)
             return;
 
+        ApplyRemark(folderPath, dialog.OriginalName, dialog.Remark, dialog.ShowOriginalNameInDisplayName, notifyIcon);
+    }
+
+    public static void ApplyRemark(string folderPath, string originalName, string remark, bool showOriginalNameInDisplayName, NotifyIcon? notifyIcon)
+    {
         try
         {
-            settings.ShowOriginalNameInDisplayName = dialog.ShowOriginalNameInDisplayName;
+            var settings = SettingsStore.Load();
+            Localizer.Apply(settings.LanguageCode);
+            settings.ShowOriginalNameInDisplayName = showOriginalNameInDisplayName;
             SettingsStore.Save(settings);
 
             var originalPath = folderPath;
-            var finalPath = FolderRenameService.RenameIfNeeded(folderPath, dialog.OriginalName);
-            DesktopIniRemarkStore.SetRemark(finalPath, dialog.Remark, settings.ShowOriginalNameInDisplayName);
+            var finalPath = FolderRenameService.RenameIfNeeded(folderPath, originalName);
+            DesktopIniRemarkStore.SetRemark(finalPath, remark, showOriginalNameInDisplayName);
             ShellRefresh.RefreshFolderChange(originalPath, finalPath);
             ExplorerRefreshService.RefreshOpenExplorerWindows(originalPath, finalPath);
             notifyIcon?.ShowBalloonTip(1200, Localizer.T("AppName"), Localizer.T("RemarkSaved"), ToolTipIcon.Info);
         }
         catch (Exception ex)
         {
-            var message = ex is UnauthorizedAccessException
-                ? $"{ex.Message}\r\n\r\n{Localizer.T("UnauthorizedHint")}"
-                : ex.Message;
-            MessageBox.Show(message, Localizer.T("WriteRemarkFailedTitle"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+            HandleWriteFailure(ex, folderPath, originalName, remark, showOriginalNameInDisplayName);
         }
     }
+
+    private static void HandleWriteFailure(Exception ex, string folderPath, string originalName, string remark, bool showOriginalNameInDisplayName)
+    {
+        var message = ex is UnauthorizedAccessException
+            ? $"{ex.Message}\r\n\r\n{Localizer.T("UnauthorizedHint")}"
+            : ex.Message;
+
+        if (ex is UnauthorizedAccessException)
+        {
+            var result = MessageBox.Show(
+                $"{message}\r\n\r\n{Localizer.T("RetryAsAdmin")}",
+                Localizer.T("WriteRemarkFailedTitle"),
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Error,
+                MessageBoxDefaultButton.Button1);
+
+            if (result == DialogResult.Yes)
+                RetryAsAdministrator(folderPath, originalName, remark, showOriginalNameInDisplayName);
+            return;
+        }
+
+        MessageBox.Show(message, Localizer.T("WriteRemarkFailedTitle"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+    }
+
+    private static void RetryAsAdministrator(string folderPath, string originalName, string remark, bool showOriginalNameInDisplayName)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = Application.ExecutablePath,
+                UseShellExecute = true,
+                Verb = "runas",
+                Arguments = BuildSetRemarkArguments(folderPath, originalName, remark, showOriginalNameInDisplayName),
+            });
+        }
+        catch (Exception retryException)
+        {
+            CrashLog.Write(retryException);
+            MessageBox.Show(Localizer.T("AdminRetryFailed"), Localizer.T("WriteRemarkFailedTitle"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
+
+    private static string BuildSetRemarkArguments(string folderPath, string originalName, string remark, bool showOriginalNameInDisplayName)
+    {
+        return string.Join(
+            " ",
+            QuoteArgument("--set-remark"),
+            QuoteArgument(folderPath),
+            QuoteArgument("--original-name"),
+            QuoteArgument(originalName),
+            QuoteArgument(remark),
+            QuoteArgument("--show-original-name"),
+            QuoteArgument(showOriginalNameInDisplayName.ToString()));
+    }
+
+    private static string QuoteArgument(string value) => "\"" + value.Replace("\"", "\\\"") + "\"";
 }
 
 internal sealed class RemarkDialog : Form
@@ -1370,6 +1452,7 @@ internal static class DesktopIniRemarkStore
         var originalIniAttributes = File.Exists(desktopIniPath)
             ? File.GetAttributes(desktopIniPath)
             : FileAttributes.Hidden | FileAttributes.System;
+        var originalFolderAttributes = File.GetAttributes(folderPath);
 
         if (File.Exists(desktopIniPath))
         {
@@ -1389,12 +1472,27 @@ internal static class DesktopIniRemarkStore
 
         File.WriteAllLines(desktopIniPath, lines, Encoding.Unicode);
 
-        var folderAttributes = File.GetAttributes(folderPath);
-        File.SetAttributes(folderPath, folderAttributes | FileAttributes.ReadOnly);
-
         File.SetAttributes(
             desktopIniPath,
             (originalIniAttributes | FileAttributes.Hidden | FileAttributes.System) & ~FileAttributes.ReadOnly);
+
+        EnsureShellFolderAttributes(folderPath, originalFolderAttributes);
+    }
+
+    private static void EnsureShellFolderAttributes(string folderPath, FileAttributes originalFolderAttributes)
+    {
+        var requiredAttributes = FileAttributes.ReadOnly | FileAttributes.System;
+        if ((originalFolderAttributes & requiredAttributes) != 0)
+            return;
+
+        try
+        {
+            File.SetAttributes(folderPath, originalFolderAttributes | FileAttributes.ReadOnly);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            File.SetAttributes(folderPath, originalFolderAttributes | FileAttributes.System);
+        }
     }
 
     private static string BuildDisplayName(string folderPath, string remark, bool showOriginalName)

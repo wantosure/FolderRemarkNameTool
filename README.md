@@ -59,7 +59,7 @@ Windows 资源管理器没有开放“显示名”和“真实文件夹名”完
 
 - 仅支持 Windows。
 - 仅处理文件夹，不处理普通文件。
-- 某些受保护目录可能需要更高权限才能写入 `desktop.ini`。
+- 某些受保护目录可能需要更高权限才能写入 `desktop.ini` 或设置文件夹属性；遇到权限失败时可以选择以管理员权限重试。
 - Windows 可能缓存图标或显示名，必要时需要刷新或重启 Explorer。
 
 ## 构建
@@ -143,7 +143,7 @@ Plain `F4` is commonly used by File Explorer for the address/navigation bar, so 
 
 - Windows only.
 - Folders only; regular files are not supported.
-- Protected folders may require elevated permissions to write `desktop.ini`.
+- Protected folders may require elevated permissions to write `desktop.ini` or set folder attributes; when permission fails, you can retry as administrator.
 - Windows may cache icons or display names, so Explorer refresh or restart may be required in some cases.
 
 ## Build
