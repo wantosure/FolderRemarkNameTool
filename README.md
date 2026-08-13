@@ -4,6 +4,8 @@
 
 一个 Windows 托盘小工具，用来给资源管理器里的文件夹设置“备注名”。真实文件夹名不变，备注显示名通过 `desktop.ini` 保存。
 
+它特别适合这类场景：很多软件、游戏或开发工具要求安装目录必须是纯英文、不能包含中文或特殊符号，但你又希望在资源管理器里看到一个好记的中文名。这个工具可以让真实路径继续保持 `Absolum` 这样的英文目录，同时在资源管理器里显示为 `绝对魔权（Absolum）`。备注名写入文件夹后长期有效，即使本软件关闭，也能继续显示。
+
 ![文件夹备注名使用说明](docs/images/usage-guide.png)
 
 ## 下载安装
@@ -18,6 +20,8 @@
 - 默认快捷键为 `F4`，也支持在设置中自定义快捷键
 - 可同时修改真实文件夹名和备注名
 - 可选择显示为 `备注名（原名）`
+- 保持真实路径为英文/无特殊符号，同时在资源管理器显示中文备注名
+- 备注写入后长期有效，软件退出后仍可显示
 - 默认加入资源管理器文件夹右键菜单，也支持在设置中移除
 - 支持开机自动启动
 - 备注写入目标文件夹内的 `desktop.ini`
@@ -43,6 +47,8 @@
 ## 实现说明
 
 Windows 资源管理器没有开放“显示名”和“真实文件夹名”完全分离的普通插件接口。本工具使用 Windows Shell 支持的 `desktop.ini` 机制写入显示名。
+
+因为显示名保存在目标文件夹自己的 `desktop.ini` 中，所以它不是临时覆盖层，也不依赖本工具持续运行。设置成功后，即使退出本工具，资源管理器仍会按照 Windows Shell 机制显示备注名。
 
 单独的 `F4` 默认会被资源管理器用于地址栏/导航栏，因此本工具对 `F4` 使用轻量键盘钩子，只在资源管理器前台时处理。带修饰键的组合快捷键使用 `RegisterHotKey`。
 
@@ -79,6 +85,8 @@ dotnet publish .\FolderRemarkNameTool.csproj -c Release -p:Platform=x64
 
 A small Windows tray utility for assigning a remark display name to folders in File Explorer. The real folder name stays unchanged, while the display name is stored through `desktop.ini`.
 
+It is useful when software, games, or development tools require install paths to be plain English without Chinese characters or special symbols, but you still want a readable Chinese display name in File Explorer. For example, the real folder can stay as `Absolum`, while File Explorer shows `绝对魔权（Absolum）`. The display name is persistent after it is written, and it still works when this tool is closed.
+
 ![Folder Remark Name Tool usage guide](docs/images/usage-guide.png)
 
 ## Download
@@ -93,6 +101,8 @@ Windows may show an unknown publisher warning because this project is not code-s
 - Default shortcut is `F4`; custom shortcuts are supported in settings
 - Edit both the real folder name and the remark name
 - Optional display format: `Remark name (Original name)`
+- Keep real paths plain English / symbol-safe while showing a readable remark name in File Explorer
+- Persistent display after writing; the tool does not need to keep running
 - Explorer folder context menu enabled by default, removable from settings
 - Optional startup on Windows login
 - Stores remarks in the target folder's `desktop.ini`
@@ -118,6 +128,8 @@ Right-click the tray icon and choose "Settings" to configure:
 ## How It Works
 
 Windows File Explorer does not provide a normal plugin API that fully separates a folder's display name from its real filesystem name. This tool uses the Windows Shell `desktop.ini` mechanism to write the display name.
+
+Because the display name is stored in the target folder's own `desktop.ini`, it is not a temporary overlay and does not depend on this tool staying open. After the remark is saved, File Explorer can continue showing it through the Windows Shell mechanism even when this tool is closed.
 
 Plain `F4` is commonly used by File Explorer for the address/navigation bar, so this tool handles it with a lightweight keyboard hook only when File Explorer is in the foreground. Shortcuts with modifier keys use `RegisterHotKey`.
 
